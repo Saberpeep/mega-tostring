@@ -7,7 +7,7 @@ var Mega_toString = function(){
      *  as a string that you can use for development, etc.
      * 
      * @param  {any} obj - any object or simple
-     * @param  {number} depth - starting indent, used internally during recursion
+     * @param  {number} [depth] - starting indent, used internally during recursion
      * @returns {string}
      * 
      * @example
