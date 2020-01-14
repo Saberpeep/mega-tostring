@@ -5,7 +5,7 @@ Creates string desciribing any object or literal and all nested properties.
 
 ## Usage
 
-`mega_toString.print(obj)` 
+`mega_toString.print(obj[, includeProto])` 
 * obj `any` - the object or simple to be inspected
 * includeProto `boolean` - (optional) set true if you want to show the `__proto__` keys
 
