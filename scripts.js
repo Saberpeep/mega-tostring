@@ -6,7 +6,8 @@ var Mega_toString = function(){
      * ie. Recreate the browser javascript console output
      *  as a string that you can use for development, etc.
      * 
-     * @param  {any} obj - any object or simple
+     * @param  {any} obj - the object or simple to be inspected
+     * @param  {boolean} [includeProto] - set true if you want to show the __proto__ keys
      * @param  {number} [depth] - starting indent, used internally during recursion
      * @returns {string}
      * 
@@ -14,7 +15,7 @@ var Mega_toString = function(){
      *      print(myObject);
      * 
      */
-    function print(obj, depth){
+    function print(obj, includeProto, depth){
         var out = '';
 
         depth = depth || 0;
@@ -36,34 +37,50 @@ var Mega_toString = function(){
 
             // Get object keys
             var keys = Object.keys(obj);
-            if (obj.__proto__){
-                // Also get keys from prototype if availabile (added to top of list).
-                // Prototype keys are overridden by main keys if duplicate.
-                var protoKeys = Object.keys(obj.__proto__);
-                for (var pkey of protoKeys){
-                    if (!keys.includes(pkey)){
-                        keys.unshift(pkey);
-                    }
+
+            // Also get property names if available
+            var pNames = Object.getOwnPropertyNames(obj);
+            for (var pName of pNames){
+                if (!keys.includes(pName)){
+                    keys.push(pName);
                 }
+            }
+
+            if (includeProto && obj.__proto__){
+                keys.push('__proto__');
             } 
+
+            // If no keys and toString isnt just the type, print it instead
+            if (!keys.length && obj.toString && !obj.toString().includes(obj.constructor.name + ']')){
+                // Print type and toString
+                return out + `[${obj.constructor.name}] ${obj.toString()},`;
+            }
 
             // Print type and length
             out += `[${obj.constructor.name}](${keys.length}){`;
             // Prevent infinite recursion, depth limited
-            if (keys.length > 0 && depth > 5){ 
-                return out += `\n${getIndent(depth)}...`;
-            } 
+            if (keys.length > 0 && depth > 10){ 
+                return out + `\n${getIndent(depth)}...`;
+            }
             // Print each key and value
             for (key of keys){
                 // Print key name
                 out += `\n${getIndent(depth)}${key}: `;
                 
-                // If we arent directly recurring, run again for each key.
-                if (obj[key] !== obj){
-                    out += `${print(obj[key], depth)}`;
-                }else{
-                    // If we are directly recurring, stop and print <self> instead.
-                    out += `<self>`;
+                try{
+                    // If we arent directly recurring, run again for each key.
+                    if (key == '__proto__' && obj[key].constructor.name == 'Object'){
+                        out += `[Object] ...`;
+                    }
+                    else if (obj[key] !== obj){
+                        out += `${print(obj[key], includeProto, depth)}`;
+                    }
+                    else{
+                        // If we are directly recurring, stop and print <self> instead.
+                        out += `<self>`;
+                    }
+                }catch(e){
+                    out += `<illegal>`;
                 }
             }
             // Print closing brace, if object empty, print on same line as opening brace
